@@ -13,12 +13,11 @@ Unloaded wall calculation
 Timber stock length (mm): 4800
  
 # studs in wall: 13
-# timber stock for top/bottom plates: 3
-# timber stock for studs: 7
+# timber stock for top/bottom plates: 4
+# timber stock for studs: 13
  
-wastage (mm): 1100
-Total # timber stock required: 12
-
+wastage: 1.7
+Total # timber stock required: 19
 ```
 
 Loaded wall calculation
@@ -27,9 +26,10 @@ Loaded wall calculation
 Timber stock length (mm): 4800
  
 # studs in wall: 20
-# timber stock for top/bottom plates: 3
-# timber stock for studs: 11
+# timber stock for top/bottom plates: 4
+# timber stock for studs: 20
  
-wastage (mm): 1500
-Total # timber stock required: 17
+wastage: 2.4
+Total # timber stock required: 26
+
 ```
