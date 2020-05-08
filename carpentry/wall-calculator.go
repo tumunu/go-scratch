@@ -22,9 +22,14 @@ func convertToMilimetres(length float64) int {
 	return mm
 }
 func roundToNearest(num float64) int {
-	var rounded = math.Round(num)
-	var nearest = int(rounded)
+	var round = math.Round(num)
+	var nearest = int(round)
 	return nearest
+}
+func roundToLowest(num float64)  int {
+	var round = math.Trunc(num)
+	var lowest = int(round)
+	return lowest
 }
 func calculatePercentage(p int, sum int) float64 {
 	var percent = ((float64(sum) * float64(p)) / float64(100))
@@ -38,12 +43,26 @@ func isWholeNumber(num float64) bool {
 }
 
 // -------
-// returns a basic number of verticle studs (excludes wall junctions and openings)
-func calculateBasicNumberOfStuds(length float64, isLoaded bool) int {
-	// to calulate the number of studs: 
-	// - we need the wall length
-	// - whether it is a loaded or unloaded wall
+// returns the number of cuts we can get from a single piece of timber stock
+func calculateStudLengthsFromStock(length float64) int {
+	var numberFromStock = stockLength / length
+	var amount = roundToLowest(numberFromStock)
+	return amount
+}
 
+// returns the number of timber stock required
+func calculatePlateLengthsFromStock(length float64) int {
+	var numberFromStock = length * 2 / stockLength
+	var fullLengths = roundToLowest(numberFromStock)
+	var amount = fullLengths + 1 // add an extra length of timber stock.
+	return amount
+}
+
+// returns a basic number of verticle studs (excludes wall junctions and openings)
+// to calulate the number of studs: 
+// - we need the wall length
+// - whether it is a loaded or unloaded wall
+func calculateBasicNumberOfStuds(length float64, isLoaded bool) int {
 	var spacing = unloadedSpacing
 	if isLoaded {
 		spacing = loadedSpacing
@@ -56,13 +75,13 @@ func calculateBasicNumberOfStuds(length float64, isLoaded bool) int {
 	return numberOfStuds
 }
 
+// returns the total number of timber required for the build based on the timber stock length
+// to calculate the number of lengths of timber:
+// - we need to know the height of the wall
+// - we need to know the length of the wall
+// - we need to know whether the wall is loaded or unloaded
+// - we need to add an offcut ammount. 
 func calculateNumberOfStockRequired(height float64, length float64, isLoaded bool) int {
-	// to calculate the number of lengths of timber:
-	// - we need to know the height of the wall
-	// - we need to know the length of the wall
-	// - we need to know whether the wall is loaded or unloaded
-	// - we need to add an offcut ammount. 
-
 	// TODO: allow for both milimetres and metres
 	var adjustedHeight = height
 	var adjustedLength = length
@@ -71,21 +90,23 @@ func calculateNumberOfStockRequired(height float64, length float64, isLoaded boo
 	fmt.Println("# studs in wall:", numberOfStuds)
 
 	// we can calculate the top, and bottom plates, with just the leanth of the wall
-	var requiredPlateStock = adjustedLength * 2 / stockLength
-	fmt.Println("# timber stock for top/bottom plates:", roundToNearest(requiredPlateStock))
+	var requiredPlateStock = calculatePlateLengthsFromStock(adjustedLength)
+	fmt.Println("# timber stock for top/bottom plates:", requiredPlateStock)
 
-	// we can calculate the rest of the stock by multiplying the wall height and the number of studs
-	var requiredStudStock = (float64(numberOfStuds) * adjustedHeight) / stockLength
-	fmt.Println("# timber stock for studs:", roundToNearest(requiredStudStock))
+	// we can calculate the rest of the stock by multiplying the total number of studs by the 
+	// total number of studs that can be cut from a single stock length
+	var numberOfStudsFromStock = calculateStudLengthsFromStock(adjustedHeight)
+	var requiredStudStock = numberOfStuds / numberOfStudsFromStock
+	fmt.Println("# timber stock for studs:", requiredStudStock)
 
 	// the basic offcut amount (known as wastage) is usually the rough amount of 10%
 	var subTotal = requiredPlateStock + requiredStudStock 
-	var offcutAmount = calculatePercentage(10, roundToNearest(subTotal))
+	var offcutAmount = calculatePercentage(10, subTotal)
 
 	fmt.Println(" ")
-	fmt.Println("wastage (mm):", offcutAmount * 1000)
+	fmt.Println("wastage:", offcutAmount)
 
-	var adjustedTotal = float64(roundToNearest(subTotal)) + offcutAmount
+	var adjustedTotal = float64(subTotal) + offcutAmount
 	var stock = roundToNearest(adjustedTotal)
 
 	return stock
@@ -108,4 +129,3 @@ func main() {
 	fmt.Println("Total # timber stock required:", calculateNumberOfStockRequired(height, length, isLoaded))
 	fmt.Println(" ")
 }
-
